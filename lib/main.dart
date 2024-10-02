@@ -4,9 +4,11 @@ import 'package:bloc_prcatice/counter_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'api_integration_bloc_freezed/bloc/todo_bloc.dart';
-import 'api_integration_bloc_freezed/screens/todo_screen.dart';
-import 'api_integration_bloc_freezed/service/todo_service.dart';
+import 'api_integration_bloc_freezed_clean_arch/data/datasources/remote_data_source.dart';
+import 'api_integration_bloc_freezed_clean_arch/data/repositories/todo_repository_impl.dart';
+import 'api_integration_bloc_freezed_clean_arch/domain/usecases/fetch_todos.dart';
+import 'api_integration_bloc_freezed_clean_arch/presentation/bloc/todo_bloc.dart';
+import 'api_integration_bloc_freezed_clean_arch/presentation/screens/todo_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,12 +19,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final todoRemoteDataSource = TodoRemoteDataSource();
+    final todoRepository = TodoRepositoryImpl(todoRemoteDataSource);
+    final fetchTodos = FetchTodos(todoRepository);
     log('build called');
     return MultiBlocProvider(
       providers: [
         BlocProvider<TodoBloc>(
-            create: (context) =>
-                TodoBloc(ApiService('https://jsonplaceholder.typicode.com'))),
+            create: (context) => TodoBloc(fetchTodos: fetchTodos)),
         BlocProvider<CounterBloc>(create: (context) => CounterBloc())
       ],
       child: MaterialApp(
@@ -81,7 +85,7 @@ class MyHomePage extends StatelessWidget {
             FilledButton(
                 onPressed: () {
                   // BlocProvider.of<CounterBloc>(context).add(ShowSnackBar()),
-
+                  //
                   Navigator.push(
                       context,
                       MaterialPageRoute(
